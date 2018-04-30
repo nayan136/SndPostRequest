@@ -2,16 +2,20 @@ package com.example.nayanjyoti.sndpostrequest.ui;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Debug;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.nayanjyoti.sndpostrequest.BuildConfig;
 import com.example.nayanjyoti.sndpostrequest.R;
 import com.example.nayanjyoti.sndpostrequest.api.model.User;
 import com.example.nayanjyoti.sndpostrequest.api.service.UserClient;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -45,9 +49,22 @@ public class MainActivity extends Activity {
 
     private void sendNetworkRequest(User user) {
 
+//        create okHttp client
+        OkHttpClient.Builder okhttpClientBuilder = new OkHttpClient.Builder();
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        if (BuildConfig.DEBUG) {
+            okhttpClientBuilder.addInterceptor(logging);
+        }
+
+
+//        crreate retrofit instance
         Retrofit.Builder builder = new Retrofit.Builder()
                 .baseUrl("http://192.168.225.132/recharge/public/api/")
-                .addConverterFactory(GsonConverterFactory.create());
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okhttpClientBuilder.build());
 
         Retrofit retrofit = builder.build();
 
@@ -57,7 +74,6 @@ public class MainActivity extends Activity {
         call.enqueue(new Callback<User>() {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
-                Log.d("response", response.body().toString());
                 Toast.makeText(MainActivity.this, "Id"+response.body().getId(), Toast.LENGTH_SHORT).show();
             }
 
